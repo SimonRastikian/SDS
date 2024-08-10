@@ -70,7 +70,7 @@ int main (void){
     cpu_time_sig = cpu_time_sig/(ITER_NUM*CHAIN_LEN);
     cpu_time_ver = cpu_time_ver/(ITER_NUM*CHAIN_LEN);
 
-    printf("Optimized SDS keygen time in microseconds per call: %lf\n", cpu_time_keygen/CLOCKS_PER_SEC);
+    printf("Optimized SDS keygen time in microseconds per call (for a chain of %d key pairs): %lf\n", CHAIN_LEN, cpu_time_keygen/CLOCKS_PER_SEC);
     printf("Optimized SDS sig time in microseconds per call: %lf\n", cpu_time_sig/CLOCKS_PER_SEC);
     printf("Optimized SDS ver time in microseconds per call: %lf\n", cpu_time_ver/CLOCKS_PER_SEC);
 
