@@ -16,3 +16,9 @@ It is essential to have the C library `libssl-dev` installed.
 To compile run `make`.
 You can run the tests using `make run_tests`.
 The measurments can be run with `make run_measurements`
+
+## Changing Parameters
+It is possible to run the implementation with different hash functions,
+namely SHA2-256, SHA3-256 and HARAKA.
+To switch parameters, uncomment in the file `paramsmenu.h` the corresponding line
+then recompile using `make`.
