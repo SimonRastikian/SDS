@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
+#include <unistd.h>
 
 #include "../sds.h"
 
 #define ITER_NUM 100
 #define CHAIN_LEN 100
+#define USLEEP 20000
 
 void randomString(unsigned char message[]){
   int i, r;
@@ -17,14 +20,37 @@ void randomString(unsigned char message[]){
   }
 }
 
-    
+void calculateStandardDeviation(int N, double* data) {
+    double sum = 0;
+    double squared_diffs = 0;
+    double mean=0;
+    double std_dev=0;
+    int cnt = 0;
+    for (int i = 0; i < N; i++){
+        if (data[i] != 0) {
+            cnt += 1;
+            sum += data[i];
+        }
+    }
+    mean = sum / cnt;
+
+    for (int i = 0; i < N; i++){
+        if (data[i] != 0) {
+            squared_diffs += pow((data[i] - mean), 2);
+        }
+    }
+    std_dev = sqrt(squared_diffs / (cnt-1));
+    printf("Time in microseconds per call: [mean %lf]\t [standard deviation %lf]\n", mean, std_dev);
+    printf("Total number of calls: %d\n", cnt);
+
+}
+
 int main (void){
     clock_t start, end;
 
-    double cpu_time_keygen=0;
-    double cpu_time_sig=0;
-    double cpu_time_ver=0;
-
+    double time_data_keygen[ITER_NUM];
+    double time_data_sig[ITER_NUM*CHAIN_LEN];
+    double time_data_ver[ITER_NUM*CHAIN_LEN];
 
     SST sst;
     uint256 m[ITER_NUM*CHAIN_LEN];
@@ -39,24 +65,24 @@ int main (void){
 
 
     for (size_t i=0; i<ITER_NUM; i++){
-        start = end = 0;
         start = clock();
         sds_classic_sot_keygen(&sst,&vst, CHAIN_LEN);
         end = clock();
-        cpu_time_keygen += ((double) (end*1000000 - start*1000000));
+        time_data_keygen[i] = ((double) (end - start));
 
         for (size_t j=0; j<CHAIN_LEN; j++){
           start = end = 0;
           start = clock();
           sds_classic_sot_sig (sigma, &sst, m[i*ITER_NUM+j]);
           end = clock();
-          cpu_time_sig += ((double) (end*1000000 - start*1000000));
+          time_data_sig[i*ITER_NUM+j] = ((double) (end - start));
 
           start = end = 0;
           start = clock();
           sds_classic_sot_ver(&vst, m[i*ITER_NUM+j], sigma);
           end = clock();
-          cpu_time_ver += ((double) (end*1000000 - start*1000000));
+          time_data_ver[i*ITER_NUM+j] = ((double) (end - start));
+          usleep(USLEEP);
         }
     }
 
@@ -64,19 +90,12 @@ int main (void){
 
 
     printf("--------------------SDS for CLASSIC SOT------------------------\n");
-    
-    printf("Classic SDS keygen time in microseconds per %d calls for %d messages each: %lf\n", ITER_NUM,CHAIN_LEN,cpu_time_keygen/CLOCKS_PER_SEC);
-    printf("Classic SDS sig time in microseconds per %d calls: %lf\n", ITER_NUM*CHAIN_LEN,cpu_time_sig/CLOCKS_PER_SEC);
-    printf("Classic SDS ver time in microseconds per %d calls: %lf\n", ITER_NUM*CHAIN_LEN,cpu_time_ver/CLOCKS_PER_SEC);
-    
-    cpu_time_keygen = cpu_time_keygen/ITER_NUM;
-    cpu_time_sig = cpu_time_sig/(ITER_NUM*CHAIN_LEN);
-    cpu_time_ver = cpu_time_ver/(ITER_NUM*CHAIN_LEN);
-    
-    printf("Classic SDS keygen time in microseconds per call (for a chain of %d key pairs): %lf\n",CHAIN_LEN, cpu_time_keygen/CLOCKS_PER_SEC);
-    printf("Classic SDS sig time in microseconds per call: %lf\n", cpu_time_sig/CLOCKS_PER_SEC);
-    printf("Classic SDS ver time in microseconds per call: %lf\n", cpu_time_ver/CLOCKS_PER_SEC);
-
+    printf("Keygen-100\n");
+    calculateStandardDeviation(ITER_NUM, time_data_keygen);
+    printf("Sign\n");
+    calculateStandardDeviation(ITER_NUM*CHAIN_LEN, time_data_sig);
+    printf("Verify\n");
+    calculateStandardDeviation(ITER_NUM*CHAIN_LEN, time_data_ver);
     printf("--------------------------------------------\n");
 
     return 0;

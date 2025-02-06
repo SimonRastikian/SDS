@@ -3,12 +3,40 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <math.h>
+#include <unistd.h>
 
 #include "../sds.h"
 #include "../sds_extract.h"
 
 #define ITER_NUM 10000
 #define CHAIN_LEN 1
+#define USLEEP 20000
+
+void calculateStandardDeviation(int N, double* data) {
+    double sum = 0;
+    double squared_diffs = 0;
+    double mean=0;
+    double std_dev=0;
+    int cnt = 0;
+    for (int i = 0; i < N; i++){
+        if (data[i] != 0) {
+            cnt += 1;
+            sum += data[i];
+        }
+    }
+    mean = sum / cnt;
+
+    for (int i = 0; i < N; i++){
+        if (data[i] != 0) {
+            squared_diffs += pow((data[i] - mean), 2);
+        }
+    }
+    std_dev = sqrt(squared_diffs / (cnt-1));
+    printf("Time in microseconds per call: [mean %lf]\t [standard deviation %lf]\n", mean, std_dev);
+    printf("Total number of calls: %d\n", cnt);
+
+}
 
 void randomString(unsigned char message[]){
     int i, r;
@@ -21,7 +49,7 @@ void randomString(unsigned char message[]){
 
 int main (void){
     clock_t start, end;
-    double cpu_time_extract=0;
+    double time_data[ITER_NUM];
 
     SST sst, sstcpy0, sstcpy1;
     uint256 m0[ITER_NUM*CHAIN_LEN], m1[ITER_NUM*CHAIN_LEN];
@@ -53,17 +81,17 @@ int main (void){
         start = clock();
         sds_classic_sot_extract(&sstcpy1, vst, m0[i], sigma0, m1[i], sigma1);
         end = clock();
-        cpu_time_extract += ((double) (end*1000000 - start*1000000));
+        time_data[i] = ((double) (end - start));
 
         assert(eq256(sstcpy1.sk, sstcpy0.sk));
+        usleep(USLEEP);
+
     }
     freeVSTclassic(&vst);
 
 
     printf("--------------------EXTRACT SDS for CLASSIC SOT------------------------\n");
-    printf("EXTRACT Classic SDS time in microseconds per %d calls: %lf\n", ITER_NUM, cpu_time_extract/CLOCKS_PER_SEC);
-    cpu_time_extract = cpu_time_extract/ITER_NUM;
-    printf("EXTRACT Classic SDS time in microseconds per call: %lf\n", cpu_time_extract/CLOCKS_PER_SEC);
+    calculateStandardDeviation(ITER_NUM, time_data);
     printf("--------------------------------------------\n");
 
     return 0;
