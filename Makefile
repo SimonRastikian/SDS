@@ -2,10 +2,8 @@
 CC = gcc
 # Optimized, Warning,
 CFLAGS = -O3 -Wall -Wpedantic -Wformat -Wformat-security -Wunreachable-code -p
-# Profiling flag
-PFLAGS = -pg
 # Linking Crypto Library
-LDLIBS = -lcrypto -lssl
+LDLIBS = -lcrypto -lssl -lm
 # No echoing
 MAKEOPTION = --silent
 
@@ -31,7 +29,7 @@ all : $(OBJECTS)
 
 %.o :  %.c $(HEADERS)
 # Compiling files in current directory
-	$(CC) $(CFLAGS) $(PFLAGS) -o $@ -c $< $(LDLIBS)
+	$(CC) $(CFLAGS) -o $@ -c $< $(LDLIBS)
 
 compile_tests : all
 # Calling ./tests/Makefile
@@ -51,13 +49,10 @@ compile_measurements : all
 run_measurements : compile_measurements
 # Running measurements
 	@cd measurement && \
-	mkdir analysis && \
 	for i in $(MEASUREMENTS) ; do \
 		./$$i && \
-		gprof $$i gmon.out > analysis/$$i.txt &&\
 		rm -f gmon.out; \
 	done
-	+$(MAKE) $(MAKEOPTION) clean -C measurement
 
 clean :
 	+$(MAKE) $(MAKEOPTION) clean -C rand
