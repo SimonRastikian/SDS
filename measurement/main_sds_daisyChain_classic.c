@@ -59,7 +59,7 @@ int main (void){
     srand(time(NULL));
 
     for (size_t i=0; i<ITER_NUM; i++){
-      randomString(&m.as_uchar);
+      randomString(m.as_uchar);
       start = end = 0;
       start = clock();
       sds_daisyChain_classic_sot_keygen(&sst,&vst);
