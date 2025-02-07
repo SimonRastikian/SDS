@@ -9,7 +9,31 @@
 #include "../sds_daisyChain.h"
 
 #define ITER_NUM 10000
-#define USLEEP 20000
+
+// if the data is extremely sparse or many calculated execution time is zero
+// then you can increase the usleep time or potentially use clock_gettime
+// instead of clock
+#define USLEEP 0
+
+void calculateStandardDeviation(int N, double* data) {
+    double sum = 0;
+    double squared_diffs = 0;
+    double mean=0;
+    double std_dev=0;
+    for (int i = 0; i < N; i++)
+            sum += data[i];
+    mean = sum / N;
+
+    for (int i = 0; i < N; i++){
+        if (data[i] != 0) {
+            squared_diffs += pow((data[i] - mean), 2);
+        }
+    }
+    std_dev = sqrt(squared_diffs / (N-1));
+    printf("Time in microseconds per call: [mean %lf]\t [standard deviation %lf]\n", mean, std_dev);
+    printf("Total number of calls: %d\n", cnt);
+
+}
 
 void randomString(unsigned char message[]){
   int i, r;
@@ -17,31 +41,6 @@ void randomString(unsigned char message[]){
     r = rand();
     memcpy(message+i*sizeof(int),&r,sizeof(int));
   }
-}
-
-void calculateStandardDeviation(int N, double* data) {
-    double sum = 0;
-    double squared_diffs = 0;
-    double mean=0;
-    double std_dev=0;
-    int cnt = 0;
-    for (int i = 0; i < N; i++){
-        if (data[i] != 0) {
-            cnt += 1;
-            sum += data[i];
-        }
-    }
-    mean = sum / cnt;
-
-    for (int i = 0; i < N; i++){
-        if (data[i] != 0) {
-            squared_diffs += pow((data[i] - mean), 2);
-        }
-    }
-    std_dev = sqrt(squared_diffs / (cnt-1));
-    printf("Time in microseconds per call: [mean %lf]\t [standard deviation %lf]\n", mean, std_dev);
-    printf("Total number of calls: %d\n", cnt);
-
 }
 
 int main (void){
