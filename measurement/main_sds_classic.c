@@ -32,9 +32,8 @@ void calculateStandardDeviation(int N, double* data) {
     }
     std_dev = sqrt(squared_diffs / (N-1));
     printf("Time in microseconds per call: [mean %lf]\t [standard deviation %lf]\n", mean, std_dev);
-    printf("Total number of calls: %d\n", cnt);
-
 }
+
 void randomString(unsigned char message[]){
   int i, r;
   for (i=0;i<8;i++){
